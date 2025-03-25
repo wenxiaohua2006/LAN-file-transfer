@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>服务器配置中心</title>
+    <link rel="icon" href="{{ url_for('static', filename='icon.ico') }}" type="image/x-icon">
+    <style>
+        :root {
+            --primary-color: #409EFF;
+            --success-color: #67C23A;
+            --danger-color: #F56C6C;
+            --bg-color: #f5f7fa;
+        }
+
+        body {
+            font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+            background-color: var(--bg-color);
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .title2 {
+            text-align: center;
+            color: #303133;
+            margin-bottom: 30px;
+            font-size: 30px;
+        }
+
+        .config-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+        }
+
+        .config-card {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 12px 0 rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        .switch-group {
+            display: flex;
+            align-items: center;
+            margin: 15px 0;
+        }
+
+        .switch-label {
+            flex: 1;
+            color: #606266;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 50px;
+            height: 26px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #dcdfe6;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--success-color);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .input-group {
+            margin: 15px 0;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 80%;
+            min-width: 150px;
+            padding: 8px;
+            border: 1px solid #dcdfe6;
+            border-radius: 4px;
+            outline: none;
+        }
+
+        input[type="number"]:focus, input[type="text"]:focus {
+            border-color: var(--primary-color);
+        }
+
+        .unit {
+            margin-left: 10px;
+            color: #909399;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-danger {
+            background-color: var(--danger-color);
+            color: white;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            min-width: 400px;
+        }
+
+        .tag {
+            display: inline-flex;
+            align-items: center;
+            background: #f0f2f5;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin: 5px;
+        }
+
+        .tag-remove {
+            margin-left: 8px;
+            cursor: pointer;
+            color: #909399;
+        }
+
+        .record-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #ebeef5;
+            padding: 10px;
+            border-radius: 4px;
+        }
+        .speed-container {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 16px 0;
+            }
+
+            .speed-item {
+            display: flex;
+            align-items: center;
+            width: 45%;
+            padding: 12px;
+            border-radius: 8px;
+            transition: background-color 0.3s ease;
+            }
+
+            .speed-item:hover {
+            background-color: #f8f9fa;
+            }
+
+            .icon-container {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 16px;
+            }
+
+            .download .icon-container {
+            background: #e3f2fd;
+            color: #2196f3;
+            }
+
+            .upload .icon-container {
+            background: #e8f5e9;
+            color: #4caf50;
+            }
+
+            .speed-icon {
+            width: 28px;
+            height: 28px;
+            }
+
+            .title {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 4px;
+            }
+
+            .value {
+            font-size: 28px;
+            font-weight: 600;
+            color: #333;
+            letter-spacing: -0.5px;
+            }
+
+            .unit {
+            font-size: 14px;
+            color: #888;
+            margin-left: 4px;
+            }
+
+            .divider {
+            width: 1px;
+            height: 60px;
+            background: #eee;
+            }
+
+            @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+            }
+
+            .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            }
+            /* 弹窗容器 */
+            .dialog {
+                background: white;
+                padding: 2rem;
+                border-radius: 12px;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+                min-width: 320px;
+                transform: scale(0.9);
+                opacity: 0;
+                transition: all 0.3s ease;
+            }
+
+            /* 弹窗激活状态 */
+            .dialog.active {
+                transform: scale(1);
+                opacity: 1;
+            }
+
+            /* 弹窗标题 */
+            .dialog-title {
+                font-size: 1.2rem;
+                font-weight: 600;
+                margin-bottom: 1rem;
+                color: #333;
+            }
+
+            /* 弹窗内容 */
+            .dialog-content {
+                color: #666;
+                margin-bottom: 1.5rem;
+                line-height: 1.5;
+            }
+
+            /* 按钮容器 */
+            .dialog-actions {
+                display: flex;
+                gap: 1rem;
+                justify-content: flex-end;
+            }
+
+            /* 通用按钮样式 */
+            .dialog-button {
+                padding: 0.6rem 1.2rem;
+                border: none;
+                border-radius: 6px;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                font-weight: 500;
+            }
+
+            /* 确认按钮 */
+            .confirm-btn {
+                background: #007bff;
+                color: white;
+            }
+
+            .confirm-btn:hover {
+                background: #0056b3;
+            }
+
+            /* 取消按钮 */
+            .cancel-btn {
+                background: #f0f0f0;
+                color: #666;
+            }
+
+            .cancel-btn:hover {
+                background: #e0e0e0;
+            }
+
+            /* 危险状态 */
+            .dialog.warning .confirm-btn {
+                background: #dc3545;
+            }
+
+            .dialog.warning .confirm-btn:hover {
+                background: #bb2d3b;
+            }
+
+            .icon {
+                width: 24px;
+                height: 24px;
+                margin-right: 8px;
+                padding: 5px 0 5px 0;
+                vertical-align: middle;
+            }
+            .icon2{
+                width: 24px;
+                height: 20px;
+                margin-right: 2px;
+                padding: 3px 10 3px 3;
+                vertical-align: middle;
+                margin-top: -3px;
+            }
+    </style>
+</head>
+<body>
+    <h1 class="title2">服务器配置中心</h1>
+    
+    <div class="config-container">
+        <!-- 左侧配置区域 -->
+        <div>
+            <div class="config-card">
+                <h3>基本设置</h3>
+                
+                <!-- 启用文件共享 -->
+                <div class="switch-group">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    <span class="switch-label">启用文件共享</span>
+                    <label class="switch">
+                        {% if config["SingleUpload"]%}
+                        <input type="checkbox" id="singleUpload">
+                        {% else %}
+                        <input type="checkbox" checked id="singleUpload">
+                        {% endif %}
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <!-- 禁止下载 -->
+                <div class="switch-group">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>
+                    </svg>
+                    <span class="switch-label">禁止下载</span>
+                    <label class="switch">
+                        {% if not config["download"]%}
+                        <input type="checkbox" checked id="download">
+                        {% else %}
+                        <input type="checkbox" id="download">
+                        {% endif %}
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <!-- 禁止写入 -->
+                <div class="switch-group">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    <span class="switch-label">禁止写入</span>
+                    <label class="switch">
+                        {% if not config["write"]%}
+                        <input type="checkbox" checked id="write">
+                        {% else %}
+                        <input type="checkbox" id="write">
+                        {% endif %}
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <!-- 禁止目录写入 -->
+                <div class="switch-group">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                    </svg>
+                    <span class="switch-label">禁止目录写入</span>
+                    <label class="switch">
+                        {% if not config["dirwrite"]%}
+                        <input type="checkbox" checked id="dirwrite">
+                        {% else %}
+                        <input type="checkbox" id="dirwrite">
+                        {% endif %}
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <!-- 文件类型检查 -->
+                <div class="switch-group">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    <span class="switch-label">文件类型检查</span>
+                    <label class="switch">
+                        {% if config["typeinspect"]%}
+                        <input type="checkbox" checked id="typeinspect">
+                        {% else %}
+                        <input type="checkbox" id="typeinspect">
+                        {% endif %}
+                        <span class="slider"></span>
+                    </label>
+                </div>
+                
+                <!-- 单文件最大上传限制 -->
+                <div class="input-group">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    <label>单文件最大上传限制：</label>
+                    <input type="number" value="{{config["FileMax"]}}" id="fileMax">
+                    <span class="unit">MB</span>
+                </div>
+                
+                <!-- 服务器目录最大容量限制 -->
+                <div class="input-group">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2-2h4l2 2h4a2 2 0 012 2v10a2 2 0 01-2 2H5z"/>
+                    </svg>
+                    <label>服务器目录最大容量限制：</label>
+                    <input type="number" value="{{config["sysMax"]}}" min="0.5" max="12" id="sysMax">
+                    <span class="unit">GB</span>
+                </div>
+                
+                <!-- 服务器目录最大下载限制 -->
+                <div class="input-group">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    <label>服务器目录最大下载限制：</label>
+                    <input type="number" value="{{config["download_Dir"]}}" id="download_Dir" title="建议区间0.5-10,以服务器可使用内存为准">
+                    <span class="unit">GB</span>
+                </div>
+                
+                <!-- 服务器最大下载速度限制 -->
+                <div class="input-group">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    <label>服务器最大下载速度限制：</label>
+                    <input type="number" value="{{config["MaxSpeed"]}}" id="MaxSpeed"  style="cursor: not-allowed;" disabled="" title="暂不适用">
+                    <span class="unit">MB</span>
+                </div>
+            </div>
+
+            <div class="config-card">
+                <h3>目录设置</h3>
+                
+                <!-- 共享目录位置 -->
+                <div class="input-group">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/>
+                    </svg>
+                    <label>共享目录位置：</label>
+                    <input type="text" value="{{config["FileCataloguePath"]}}" id="fileCataloguePath">
+                </div>
+                
+                <!-- 服务器存储目录 -->
+                <div class="input-group">
+                    <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2-2h4l2 2h4a2 2 0 012 2v10a2 2 0 01-2 2H5z"/>
+                    </svg>
+                    <label>服务器存储目录：</label>
+                    <input type="text" value="{{config["SysCataloguePath"]}}" id="sysCataloguePath">
+                </div>
+            </div>
+            <div class="config-card">
+                <div class="speed-container">
+                  <!-- 下载速度 -->
+                  <div class="speed-item download">
+                    <div class="icon-container">
+                      <svg class="speed-icon" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/>
+                      </svg>
+                    </div>
+                    <div class="speed-data">
+                      <div class="title">下载速度</div>
+                      <div class="value animate-pulse" id="sent">Nan<span class="unit">Mbps</span></div>
+                    </div>
+                  </div>
+              
+                  <!-- 分隔线 -->
+                  <div class="divider"></div>
+              
+                  <!-- 上传速度 -->
+                  <div class="speed-item upload">
+                    <div class="icon-container">
+                      <svg class="speed-icon" viewBox="0 0 24 24">
+                        <path fill="currentColor" d="M5,20H19V18H5M19,9H15V3H9V9H5L12,16L19,9Z"/>
+                      </svg>
+                    </div>
+                    <div class="speed-data">
+                      <div class="title">上传速度</div>
+                      <div class="value animate-pulse" id="recv">Nan<span class="unit">Mbps</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+        </div>
+
+        <!-- 右侧配置区域 -->
+        <div>
+            <div class="config-card">
+                <h3>安全设置</h3>
+                <!-- 管理文件类型 -->
+                <button class="btn btn-primary" onclick="showFileTypeModal()">
+                    <svg class="icon2" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10a2 2 0 002 2h12a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H6a2 2 0 00-2 2z"/>
+                    </svg>
+                    管理文件类型
+                </button>
+                <!-- 管理IP黑名单 -->
+                <button class="btn btn-primary" onclick="showIPModal()">
+                    <svg class="icon2" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    管理IP黑名单
+                </button>
+            </div>
+            
+            
+            
+            <div class="config-card">
+                <h3>文件上传记录</h3>
+                <div class="record-list">
+                    {% if config["log"]["upload"] %}
+                        {% for file in config["log"]["upload"] %}
+                        <p>
+                            <svg class="icon2" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                            </svg>
+                            {{file}}
+                        </p>
+                        {% endfor %}
+                    {% else %}
+                        <p>暂无上传记录</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="config-card">
+                <h3>文件下载记录</h3>
+                <div class="record-list">
+                    {% if config["log"]["download"] %}
+                        {% for file in config["log"]["download"] %}
+                        <p>
+                            <svg class="icon2" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            {{file}}
+                        </p>
+                        {% endfor %}
+                    {% else %}
+                        <p>暂无下载记录</p>
+                    {% endif %}
+                </div>
+            </div>
+            
+            <div class="config-card">
+                <h3>服务器错误记录</h3>
+                <div class="record-list">
+                    {% if config["log"]["error"] %}
+                        {% for error in config["log"]["error"] %}
+                        <p>
+                            <svg class="icon2" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="16" height="16">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                            {{error}}
+                        </p>
+                        {% endfor %}
+                    {% else %}
+                        <p>暂无错误记录</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="config-card">
+                <!-- 保存当前配置 -->
+                <button class="btn btn-primary" style="width: 100%" onclick="setConfig()">
+                    <svg class="icon2" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+                    </svg>
+                    保存当前配置
+                </button>
+                <!-- 关闭服务器 -->
+                <button class="btn btn-danger" style="width: 100%; margin-top: 15px" onclick="confirmOpenFile()">
+                    <svg class="icon2" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                    </svg>
+                    关闭服务器
+                </button>
+                <!-- 退出账户 -->
+                <button class="btn btn-danger" style="width: 100%; margin-top: 15px; background-color: black;" onclick="window.location.href='/logout'">
+                    <svg class="icon2" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="20" height="20">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/>
+                    </svg>
+                    退出账户
+                </button>
+                <button class="btn btn-danger" style="width: 100%; margin-top: 15px; background-color: rgb(146, 103, 255);" onclick="saveconfig(true)">
+                    <svg class="icon2" fill="none" stroke="currentColor" viewBox="0 0 24 24" width="24" height="24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                    </svg>
+                    保存配置至本地
+                </button>
+                <button class="btn btn-danger" style="width: 100%; margin-top: 15px; background-color: rgb(255, 103, 237);" onclick="saveconfig(false)">
+                    删除本地配置
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 文件类型弹窗 -->
+    <div id="fileTypeModal" class="modal">
+        <div class="modal-content">
+            <h3>允许的文件类型</h3>
+            <div id="tagsContainer">
+                {% for type in config["type"] %}
+                <div class="tag type"><a>{{type}}</a><span class="tag-remove" onclick="this.parentElement.remove()">×</span></div>
+                {% endfor %}
+            </div>
+            <input type="text" id="newTag" placeholder="输入新类型">
+            <button class="btn btn-primary" onclick="addTag()">添加</button>
+            <button class="btn" onclick="closeModal('fileTypeModal')">关闭</button>
+        </div>
+    </div>
+
+    <!-- IP黑名单弹窗 -->
+    <div id="ipModal" class="modal">
+        <div class="modal-content">
+            <h3>IP黑名单管理</h3>
+            <input type="text" id="newIP" placeholder="输入IP地址">
+            <button class="btn btn-primary" onclick="addIP()">添加</button>
+            <div id="ipList" class="record-list" style="margin-top: 15px">
+                {% for ip in config["IPsecure"] %}
+                <div class="tag ip"><a>{{ip}}</a><span class="tag-remove" onclick="this.parentElement.remove()">×</span></div>
+                {% endfor %}
+            </div>
+            <button class="btn" onclick="closeModal('ipModal')">关闭</button>
+        </div>
+    </div>
+
+    <script>
+
+        function createDialog(title, content, isWarning = false) {
+            const overlay = document.createElement('div')
+            overlay.className = 'dialog-overlay'
+            overlay.style.position = 'fixed';
+            overlay.style.height = '100vh';
+            overlay.style.marginLeft = '20%';
+            overlay.style.alignItems = 'center';
+            overlay.style.zIndex = '999';
+            
+            const dialog = document.createElement('div')
+            dialog.className = `dialog ${isWarning ? 'warning' : ''}`
+            
+            dialog.innerHTML = `
+            <div class="dialog-title">${title}</div>
+            <div class="dialog-content">${content}</div>
+            <div class="dialog-actions">
+                <button class="dialog-button cancel-btn">取消</button>
+                <button class="dialog-button confirm-btn">确定</button>
+            </div>
+            `
+
+            overlay.appendChild(dialog)
+            if (document.body.firstChild){
+                document.body.insertBefore(overlay, document.body.firstChild)
+            }else{
+                document.body.appendChild(overlay)
+            }
+            
+            // 显示动画
+            setTimeout(() => {
+            overlay.style.display = 'flex'
+            setTimeout(() => dialog.classList.add('active'), 10)
+            }, 10)
+
+            return new Promise((resolve) => {
+            dialog.querySelector('.confirm-btn').addEventListener('click', () => {
+                closeDialog(true)
+            })
+            
+            dialog.querySelector('.cancel-btn').addEventListener('click', () => {
+                closeDialog(false)
+            })
+
+            overlay.addEventListener('click', (e) => {
+                if (e.target === overlay) closeDialog(false)
+            })
+
+            const closeDialog = (result) => {
+                dialog.classList.remove('active')
+                setTimeout(() => {
+                overlay.remove()
+                resolve(result)
+                }, 300)
+            }
+            })
+        }
+
+        async function confirmOpenFile() {
+            getding = document.querySelector('.dialog-overlay')
+            if (!getding) {
+                const firstConfirm = await createDialog(
+            '操作确认',
+            '你确定要关闭服务器吗?'
+            )
+            
+            if (!firstConfirm) return false
+            
+            const secondConfirm = await createDialog(
+            '风险警告',
+            '关闭服务器后,正在下载的用户将无法继续下载',
+            true
+            )
+            
+            if (secondConfirm){
+                window.location.href='/shutdown'
+            }
+            }
+        }
+
+        // 标签管理
+        function showFileTypeModal() {
+            document.getElementById('fileTypeModal').style.display = 'flex';
+        }
+
+        function addTag() {
+            const input = document.getElementById('newTag');
+            if (input.value) {
+                const tag = document.createElement('div');
+                tag.className = 'tag type';
+                tag.innerHTML = `<a>${input.value}</a><span class="tag-remove" onclick="this.parentElement.remove()">×</span>`;
+                document.getElementById('tagsContainer').appendChild(tag);
+                input.value = '';
+            }
+        }
+
+        // IP管理
+        function showIPModal() {
+            document.getElementById('ipModal').style.display = 'flex';
+        }
+
+        function addIP() {
+            const input = document.getElementById('newIP');
+            if (input.value) {
+                const ip = document.createElement('div');
+                ip.className = 'tag ip';
+                ip.innerHTML = `<a>${input.value}</a><span class="tag-remove" onclick="this.parentElement.remove()">×</span>`;
+                document.getElementById('ipList').appendChild(ip);
+                input.value = '';
+            }
+        }
+
+        // 通用关闭
+        function closeModal(id) {
+            document.getElementById(id).style.display = 'none';
+        }
+
+        // 点击外部关闭弹窗
+        window.onclick = function(event) {
+            if (event.target.className === 'modal') {
+                event.target.style.display = 'none';
+            }
+        }
+
+
+        function setConfig() {
+            const saveSingleUpload = document.getElementById('singleUpload').checked;
+            const saveDownload = document.getElementById('download').checked;
+            const saveWrite = document.getElementById('write').checked;
+            const savedirWrite = document.getElementById('dirwrite').checked;
+            const saveFileMax = document.getElementById('fileMax').value;
+            const saveSysMax = document.getElementById('sysMax').value;
+            const saveFileCataloguePath = document.getElementById('fileCataloguePath').value;
+            const saveSysCataloguePath = document.getElementById('sysCataloguePath').value;
+            const filetype = document.querySelectorAll('.type a');
+            const ipList = document.querySelectorAll('.ip a');
+            const MaxSpeed = document.getElementById('MaxSpeed').value;
+            const typeinspect = document.getElementById('typeinspect').checked;
+            const download_Dir = document.getElementById('download_Dir').value;
+            if (MaxSpeed < 10 || MaxSpeed > 1024) {
+                alert('下载速度限制必须在10~1024MB之间');
+                return -1;
+            }
+            const dataType = [];
+            const ipData = [];
+            for (let i = 0; i < filetype.length; i++) {
+                dataType.push(filetype[i].innerHTML);
+            }
+            for (let i = 0; i < ipList.length; i++) {
+                ipData.push(ipList[i].innerHTML);
+            }
+            
+            const config = {"SingleUpload":!saveSingleUpload,"download":!saveDownload,"write":!saveWrite,"dirwrite":!savedirWrite,"FileMax":saveFileMax,"sysMax":saveSysMax,"FileCataloguePath":saveFileCataloguePath,"SysCataloguePath":saveSysCataloguePath,"type":dataType,"IPsecure":ipData,"typeinspect":typeinspect,"download_Dir":download_Dir}
+
+            // 使用XMLHttpRequest或fetch API发送文件到服务器
+            fetch('/set_config', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(config)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Start:', config);
+                console.log('Upload success:', data);
+                alert(data.code);
+            })
+            .catch(error => {
+                console.error('Upload error:', error);
+            });
+        }
+
+        let speedInterval;
+        let sent = document.getElementById('sent'); 
+        let recv = document.getElementById('recv');
+        setInterval(updateSpeed, 1000);
+        function updateSpeed() {
+            fetch('/port', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({"refresh": "get_speed"})
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log('Upload success:', data.sent, data.recv);
+                sent.innerHTML = data.sent + '<span class="unit">Mbps</span>';
+                recv.innerHTML = data.recv + '<span class="unit">Mbps</span>';
+            })
+            .catch(error => {
+                console.error('Upload error:', error);
+            });
+        }
+
+        function saveconfig(pathif){
+            let path = pathif ? 'save_config' : 'drop_config';
+            fetch(`/${path}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.code);
+            })
+            .catch(error => {
+                console.error('Upload error:', error);
+            });
+        }
+    </script>
+</body>
+</html>
