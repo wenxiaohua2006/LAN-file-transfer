@@ -1,0 +1,25 @@
+{
+    "SingleUpload": false,
+    "download": true,
+    "write": true,
+    "dirwrite": true,
+    "FileMax": 1024,
+    "sysMax": 1,
+    "MaxSpeed": 1024,
+    "SysCataloguePath": "download",
+    "FileCataloguePath": "C:/Users/Administrator/Desktop/其他/服务器",
+    "log": {
+        "upload": [],
+        "download": [],
+        "error": []
+    },
+    "type": [
+        "zip",
+        "txt"
+    ],
+    "IPsecure": [
+        "192.168.0.5"
+    ],
+    "typeinspect": false,
+    "download_Dir": 6
+}
